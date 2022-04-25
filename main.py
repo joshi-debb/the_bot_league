@@ -10,6 +10,8 @@ from os import startfile
 import webbrowser
 
 datas = []
+tokens = []
+errors = []
 
 class Datas:
     def __init__(self,date,season,journey,team1,team2,gol1,gol2) -> None:
@@ -110,8 +112,8 @@ def AFD(starter: str):
                 col += 1
                 lexeme += char
             
-            #Si el caracter es un digito [ " ]    
-            elif char == '"':
+            #Si el caracter es una comilla doble [ " ]    
+            elif (ord(char) == 34):
                 state = 5
                 pointer += 1
                 col += 1
@@ -154,13 +156,13 @@ def AFD(starter: str):
                 col += 1
 
         elif state == 6:
-            if((ord(char) >= 65 and ord(char) <= 90) or (ord(char) >= 97 and ord(char) <= 122) or ord(char) == 164 or ord(char) == 165):
+            if((ord(char) >= 97 and ord(char) <= 122) or ord(char) == 164):
                 pointer += 1
                 col += 1
                 lexeme += char
             else:
-                if lexeme in ['RESULTADO','VS','TEMPORADA','JORNADA','GOLES', 'LOCAL', 'VISITANTE', 'TOTAL', 'TABLA', 'PARTIDOS', 'TOP', 'SUPERIOR', 'INFERIOR','ADIOS','-f', '-ji', '-jf', '-n']:
-                    tokens.append(Token('Reservada', lexeme, row, col))
+                if lexeme in ['-f', '-ji', '-jf', '-n']:
+                    tokens.append(Token('tk_flag', lexeme, row, col))
                 else:
                     errores.append(Errors(row, col, lexeme))
                     pointer += 1
@@ -169,38 +171,40 @@ def AFD(starter: str):
                 lexeme = ''
         
         #estado 2 -> archivos
+        #reporte
         elif state == 2:
             if((ord(char) >= 65 and ord(char) <= 90) or (ord(char) >= 97 and ord(char) <= 122) or ord(char) == 164 or ord(char) == 165):
                 pointer += 1
                 col += 1
                 lexeme += char
-            elif((ord(char) >= 48 and ord(char) <= 57) or ord(char) == 95 or ord(char) == 46):
-                state = 7
-                pointer += 1
-                col += 1
-                lexeme += char
+
+                if lexeme in ['RESULTADO','VS','TEMPORADA','JORNADA','GOLES', 'LOCAL', 'VISITANTE', 'TOTAL', 'TABLA', 'PARTIDOS', 'TOP', 'SUPERIOR', 'INFERIOR','ADIOS']:
+                    tokens.append(Token('Reservada', lexeme, row, col))
+                    state = 0
+                    lexeme = ''
             else:
-                errores.append(Errors(row, col, char))
-                pointer += 1
-                col += 1
+                if((ord(char) >= 48 and ord(char) <= 57) or ord(char) == 95 or ord(char) == 46):
+                    state = 7
+                    pointer += 1
+                    col += 1
+                    lexeme += char 
+                else:
+                    state = 0
+                    tokens.append(Token('tk_ID', lexeme, row, col))
+                    lexeme = ''
             
-            state = 0
-            tokens.append(Token('Archivo', lexeme, row, col))
-            lexeme = ''
-        
         elif state == 7:
             if((ord(char) >= 65 and ord(char) <= 90) or (ord(char) >= 97 and ord(char) <= 122) or ord(char) == 164 or ord(char) == 165 or (ord(char) >= 48 and ord(char) <= 57) or ord(char) == 95 or ord(char) == 46):
                 pointer += 1
                 col += 1
                 lexeme += char
             else:
-                errores.append(Errors(row, col, char))
-                pointer += 1
-                col += 1
-            
-            state = 0
-            tokens.append(Token('Archivo', lexeme, row, col))
-            lexeme = ''
+                state = 0
+                tokens.append(Token('tk_ID', lexeme, row, col))
+                lexeme = ''
+                # errores.append(Errors(row, col, char))
+                # pointer += 1
+                # col += 1      
 
         #numeros
         elif state == 4:
@@ -219,15 +223,16 @@ def AFD(starter: str):
                 pointer += 1
                 col += 1
                 lexeme += char
-            elif(ord(char) == 45):
-                state = 10
-                pointer += 1
-                col += 1
-                lexeme += char
             else:
-                errores.append(Errors(row, col, char))
-                pointer += 1
-                col += 1
+                if(ord(char) == 45):
+                    state = 10
+                    pointer += 1
+                    col += 1
+                    lexeme += char
+                else:
+                    errores.append(Errors(row, col, char))
+                    pointer += 1
+                    col += 1
         
         elif state == 10:
             if(ord(char) >= 48 and ord(char) <= 57):
@@ -245,16 +250,17 @@ def AFD(starter: str):
                 pointer += 1
                 col += 1
                 lexeme += char
-            elif(ord(char) == 60):
-                state = 8
-                tmp_state = 11
-                pointer += 1
-                col += 1
-                lexeme += char
             else:
-                errores.append(Errors(row, col, char))
-                pointer += 1
-                col += 1      
+                if(ord(char) == 62):
+                    state = 8
+                    tmp_state = 11
+                    pointer += 1
+                    col += 1
+                    lexeme += char
+                else:
+                    errores.append(Errors(row, col, char))
+                    pointer += 1
+                    col += 1      
 
         elif state == 3:
             if(ord(char) >= 48 and ord(char) <= 57):
@@ -269,33 +275,39 @@ def AFD(starter: str):
                 col += 1
             
             state = 0
-            tokens.append(Token('numero', lexeme, row, col))
+            tokens.append(Token('tk_mum', lexeme, row, col))
             lexeme = ''
 
         #nombre de equipos
         elif state == 5:
-            state = 8
-            tmp_state = 5
-            pointer += 1
-            col += 1
-            lexeme += char
-           
+            if(ord(char) >= 0 and ord(char) <= 255 and ord(char) != 34):
+                pointer += 1
+                col += 1
+                lexeme += char
+            else:
+                if (ord(char) == 34):
+                    state = 8
+                    tmp_state = 5
+                    pointer += 1
+                    col += 1
+                    lexeme += char
+                
         #estado 8 -> Aceptacion General
         elif state == 8:
             if tmp_state == 11:
                 state = 0
                 tmp_state = 0
-                tokens.append(Token('YYYY', lexeme, row, col))
+                tokens.append(Token('tk_year', lexeme, row, col))
                 lexeme = ''
             elif tmp_state == 3:
                 state = 0
                 tmp_state = 0
-                tokens.append(Token('numero', lexeme, row, col))
+                tokens.append(Token('tk_mum', lexeme, row, col))
                 lexeme = ''
             elif tmp_state == 5:
                 state = 0
                 tmp_state = 0
-                tokens.append(Token('equipo', lexeme, row, col))
+                tokens.append(Token('string', lexeme, row, col))
                 lexeme = ''
 
     return tuple(tokens), tuple(errores)
@@ -325,7 +337,7 @@ class display_gui():
         self.root = tk.Tk()
         self.frame = Frame()
 
-        self.text = []
+        self.lexeme = ''
 
         self.root.title('La Liga Bot')
         self.root.geometry('700x400')
@@ -333,46 +345,57 @@ class display_gui():
         self.frame.config(width=700, height=400)
         self.frame.place(x=0, y=0)
 
-        self.btn_load_files = Button(self.frame, width = 17, text="Reporte de Errores")
-        self.btn_load_files.place(x=563, y=30)
+        self.btn_RE = Button(self.frame, width = 17, text="Reporte de Errores", command = self.errors)
+        self.btn_RE.place(x=563, y=30)
 
-        self.btn_load_files = Button(self.frame, width = 17, text="Limpiar log de Errores")
-        self.btn_load_files.place(x=563, y=60)
+        self.btn_LLE = Button(self.frame, width = 17, text="Limpiar log de Errores", command=self.LOE_clear)
+        self.btn_LLE.place(x=563, y=60)
 
-        self.btn_load_files = Button(self.frame, width = 17, text="Reporte de Tokens")
-        self.btn_load_files.place(x=563, y=90)
+        self.btn_RT = Button(self.frame, width = 17, text="Reporte de Tokens", command = self.tokens)
+        self.btn_RT.place(x=563, y=90)
 
-        self.btn_load_files = Button(self.frame, width = 17, text="Limpiar log de Tokens")
-        self.btn_load_files.place(x=563, y=120)
+        self.btn_LLT = Button(self.frame, width = 17, text="Limpiar log de Tokens", command= self.LOT_clear)
+        self.btn_LLT.place(x=563, y=120)
 
-        self.btn_load_files = Button(self.frame, width = 17, text="Manual de Usuario")
-        self.btn_load_files.place(x=563, y=150)
+        self.btn_MU = Button(self.frame, width = 17, text="Manual de Usuario")
+        self.btn_MU.place(x=563, y=150)
 
-        self.btn_load_files = Button(self.frame, width = 17, text="Manual Tecnico")
-        self.btn_load_files.place(x=563, y=180)
+        self.btn_MT = Button(self.frame, width = 17, text="Manual Tecnico")
+        self.btn_MT.place(x=563, y=180)
 
-        self.btn_load_files = Button(self.frame, width = 17, text="Enviar", command = self.getText_entry)
-        self.btn_load_files.place(x=563, y=348)
+        self.btn_Send = Button(self.frame, width = 17, text="Enviar", command = lambda: self.analizer(self.text_area.get()))
+        self.btn_Send.place(x=563, y=348)
 
         self.chat_area = Text(self.frame,  height = 19, width = 65)
         self.chat_area.place(x=30, y=30)
+
+        Bot = '\t -> {} \n'.format('HOLA')
+        self.chat_area.insert(END,Bot)
         self.chat_area.configure(state="disable")
 
-        self.text_area = Entry(self.frame,  height = 1, width = 65)
-        self.text_area.place(x=30, y=350)
+        self.text_area = Entry(self.frame)
+        self.text_area.place(x=30, y=350, width=525 , height=25)
 
         self.root.resizable(0,0)
         self.root.mainloop()
-    
-    def getText_entry(self):
-        self.text = (self.text_area.get(1.0, tk.END+"-1c"))
-    
+
+
     def clearText_area(self):
         self.chat_area.delete("1.0","end")
 
-    def analizer(self):
-        self.getText_entry()
-        tokens, errors = AFD(self.text)
+    def analizer(self,text):
+        global tokens
+        global errors
+
+        self.chat_area.configure(state="normal")
+        user = '\t <- {} \n'.format(text)
+        self.chat_area.insert(END,user)
+        self.chat_area.configure(state="disable")
+        
+
+        self.lexeme += '\n{}'.format(text)
+
+        tokens, errors = AFD(self.lexeme)
 
         if len(tokens) != 0:
             for i in tokens:
@@ -386,14 +409,34 @@ class display_gui():
         else:
             print(' > No hay errores')
 
-        if len(self.text) != 0:
+    def tokens(self):
+        global tokens
+        if len(tokens) != 0:
             print(' > Reporte de Tokens')
-            process_tokens(tokens)
-        
+            process_tokens(tokens) 
+        else:
+            print(' > No hay nada que reportar')
+    
+    def LOT_clear(self):
+        global tokens
+        tokens = ()
+        self.lexeme = ''
+    
+    def errors(self):
+        global errors
+        if len(errors) != 0:
             print(' > Reporte de Errores')
             process_errors(errors)
         else:
             print(' > No hay nada que reportar')
+    
+    def LOE_clear(self):
+        global errors
+        errors = ()
+        self.lexeme = ''
+            
+
+        
     
         
 if __name__ == '__main__':
