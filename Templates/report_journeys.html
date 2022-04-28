@@ -81,34 +81,34 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-    <title >Reporte De Tokens</title>
+    <title >Reporte De Jornada</title>
 
   </head>
   <body>
 
     <header style="margin: 0 auto">
-    <h1 class="text-center" style="font-size: xx-large;">REPORTE DE TOKENS</h1>
+    <h1 class="text-center" style="font-size: xx-large;">REPORTE DE JORNADA</h1>
     </header>
     <main>
       
       <section id = "subBody">
-        <h1 class="text-center">Tabla De Tokens</h1>
+        <h1 class="text-center">PARTIDOS DE LA JORNADA</h1>
         <table style="margin: 0 auto" >
           <thead >
             <tr id = "headtable">
-              <th>Token:</th>
-              <th>Lexema:</th>
-              <th>Fila:</th>
-              <th>Columna:</th>
+              <th>Equipo Local:</th>
+              <th>Goles:</th>
+              <th>Equipo Visitante:</th>
+              <th>Goles:</th>
             </tr>
           </thead>
           <tbody>
-            {% for Item in tokens %}
+            {% for Item in journeys %}
             <tr id = "bodytable">
-              <td>{{ Item.token.name }}</td>
-              <td>{{ Item.lexeme }}</td>
-              <td>{{ Item.row }}</td>
-              <td>{{ Item.col }}</td>
+              <td>{{ Item.team1 }}</td>
+              <td>{{ Item.gol1 }}</td>
+              <td>{{ Item.team2 }}</td>
+              <td>{{ Item.gol2 }}</td>
             </tr>
             {% endfor %}
           </tbody>

@@ -92,7 +92,7 @@
     <main>
       
       <section id = "subBody">
-        <h1 class="text-center">Tabla De Errores</h1>
+        <h1 class="text-center">Tabla De Errores Lexicos</h1>
         <table style="margin: 0 auto" >
           <thead >
             <tr id = "headtable">
@@ -107,6 +107,28 @@
               <td>{{ Item.char }}</td>
               <td>{{ Item.line }}</td>
               <td>{{ Item.col }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+        
+        <h1 class="text-center">Tabla De Errores Sintacticos</h1>
+        <table style="margin: 0 auto" >
+          <thead >
+            <tr id = "headtable">
+              <th>Linea:</th>
+              <th>Columna:</th>
+              <th>Token Incorrecto:</th>
+              <th>Tokens Esperados:</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for Item in syntaxs %}
+            <tr id = "bodytable">
+              <td>{{ Item.line }}</td>
+              <td>{{ Item.col }}</td>
+              <td>{{ Item.last_token.name }}</td>
+              <td>{{ extract_names(Item.expected_tokens) }}</td>
             </tr>
             {% endfor %}
           </tbody>
