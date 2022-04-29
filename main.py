@@ -1,5 +1,4 @@
 import csv
-from glob import glob
 from tkinter import *
 import tkinter as tk
 from tkinter.messagebox import showerror, showinfo
@@ -1076,15 +1075,19 @@ class display_gui():
         tokens_list, errors_list = AFD(self.lexeme2)
 
         if len(tokens_list) != 0:
-            print(' > Reporte de Tokens')
+            showinfo('Info',
+                     'Reporte de Tokens')
             process_tokens(tokens_list) 
         else:
-            print(' > No hay nada que reportar')
+            showinfo('Info',
+                     'Nada que reportar')
     
     def LOT_clear(self):
         global tokens_list
         tokens_list = ()
         self.lexeme2 = ''
+        showinfo('Info',
+                     'Log de Tokens Limpio')
     
     def errors(self):
         global tokens_list
@@ -1097,10 +1100,12 @@ class display_gui():
         error_general = syntaxE_list.startup()
 
         if len(errors_list) != 0 or len(error_general) != 0:
-            print(' > Reporte de Errores')
+            showinfo('Info',
+                     'Reporte de Errores')
             process_errors(errors_list,error_general)
         else:
-            print(' > No hay nada que reportar')
+            showinfo('Info',
+                     'Nada que reportar')
 
     def LOE_clear(self):
         global errors_list
@@ -1108,15 +1113,18 @@ class display_gui():
         errors_list = ()
         syntaxE_list = ()
         self.lexeme3 = ''
+        showinfo('Info',
+                     'Log de Errores Limpio')
 
     def manual_usuario(self):
-        print(' > Manual de Usuario')
+        showinfo('Info',
+                     'Manual de Usuario')
         webbrowser.open_new('Docs\\Usuario.pdf')
     
     def manual_tecnico(self):
-        print(' > Manual de Tecnico')
+        showinfo('Info',
+                     'Manual Tecnico')
         webbrowser.open_new('Docs\\Tecnico.pdf')
-
 
 def Load_CSV(ruta):
     with open(ruta,"r",encoding='utf-8') as File:
@@ -1311,8 +1319,6 @@ def AI_BOT():
 
     else:
         print(' > No hay parametros para comandos')
-
-
 
 if __name__ == '__main__':
     Load_CSV('Files\LaLigaBot-LFP.csv')
