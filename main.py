@@ -6,32 +6,38 @@ from tkinter.messagebox import showerror, showinfo
 from tokenize import Token
 from typing import List, Type
 from enum import Enum
-
 from jinja2 import Environment, select_autoescape
 from jinja2.loaders import FileSystemLoader
-
+import sys
 from os import startfile
 import webbrowser
 
 datas = []
 tokens = []
 errors = []
-
 tokens_list = []
 errors_list = []
 syntaxE_list = []
 error_general = []
-
 syntaxErrs = []
 error = []
-
 journeyses = []
 tableses = []
 seasonses = []
-
+seasonses2 = []
+partidoses = []
 puntos = []
+puntos2 = []
 
 class journeys():
+    def __init__(self, journey,team1,gol1,team2,gol2) -> None:
+        self.journey = journey
+        self.team1 = team1
+        self.team2 = team2
+        self.gol1 = gol1
+        self.gol2 = gol2
+
+class partidos():
     def __init__(self, journey,team1,gol1,team2,gol2) -> None:
         self.journey = journey
         self.team1 = team1
@@ -43,6 +49,60 @@ class punto():
     def __init__(self,team,points) -> None:
         self.name = team
         self.points = points
+
+class punto2():
+    def __init__(self,team,points) -> None:
+        self.name = team
+        self.points = points
+
+class tables2():
+    global puntos2 
+    def __init__(self, journey,team1,gol1,team2,gol2,ids) -> None:
+        self.journey = journey
+        self.team1: str = str(team1)
+        self.team2: str = str(team2)
+        self.gol1: int = int(gol1)
+        self.gol2: int = int(gol2)
+        self.id: str = ids
+
+        self.points1: int = 0
+        self.points2: int = 0
+
+        if gol1 > gol2:
+            self.points1 += 3
+        if gol1 < gol2:
+            self.points2 += 3
+        if gol1 == gol2:
+            self.points1 += 1
+            self.points2 += 1
+
+            aux1 = ''
+            aux2 = ''
+        
+        try:
+            if len(puntos2) == 0:
+                puntos2.append(punto2(self.team1,self.points1))
+                puntos2.append(punto2(self.team2,self.points2))
+
+            else:
+                
+                if ids == 'topSuperior':
+                    aux1:punto2 = buscar2(self.team1)
+                    aux2:punto2 = buscar2(self.team2)
+                elif ids == 'topInferior':
+                    aux1:punto2 = buscar3(self.team1)
+                    aux2:punto2 = buscar3(self.team2)
+
+                if aux1 != None or aux2 != None:
+                    if aux1.name == self.team1 or aux2.name == self.team1:
+                        aux1.points += self.points1
+                    elif aux2.name == self.team2 or aux1.name == self.team2:
+                        aux2.points += self.points2
+                else:
+                    puntos2.append(punto2(self.team1,self.points1))
+                    puntos2.append(punto2(self.team2,self.points2))
+        except:
+            print('error')
 
 class tables():
     global puntos 
@@ -71,9 +131,7 @@ class tables():
             if len(puntos) == 0:
                 puntos.append(punto(self.team1,self.points1))
                 puntos.append(punto(self.team2,self.points2))
-
             else:
-                
                 aux1:punto = buscar(self.team1)
                 aux2:punto = buscar(self.team2)
 
@@ -98,33 +156,54 @@ def buscar(nombre):
         else:
             pass
 
-def bubble_sort(data: List[punto]):
+def buscar2(nombre):
+
+    punto_ord = clasifications2()
+    
+    for i in range(len(punto_ord)):
+        if punto_ord[i].name == nombre:
+            return punto_ord[i]
+        else:
+            pass
+
+def buscar3(nombre):
+
+    punto_ord = clasifications3()
+    
+    for i in range(len(punto_ord)):
+        if punto_ord[i].name == nombre:
+            return punto_ord[i]
+        else:
+            pass
+
+def bubble_sort_UP(data):
     for i in range(len(data) - 1):
         for j in range(0, len(data) - i - 1):
             if data[j].points < data[j + 1].points:
                     data[j], data[j + 1] = data[j + 1], data[j]
     return data
 
+def bubble_sort_DOWN(data: List[punto]):
+    for i in range(len(data) - 1):
+        for j in range(0, len(data) - i - 1):
+            if data[j].points > data[j + 1].points:
+                    data[j], data[j + 1] = data[j + 1], data[j]
+    return data
+
 def clasifications():
     global puntos
-    puntos_ord = bubble_sort(puntos)
-    return puntos_ord        
-            
-class seasons():
-    def __init__(self, journey,team1,gol1,team2,gol2) -> None:
-        self.team1 = team1
-        self.team2 = team2
-        self.journey = journey
-        self.gol1: int = int(gol1)
-        self.gol2: int = int(gol2)
-        self.result = ''
+    puntos_ord = bubble_sort_UP(puntos)
+    return puntos_ord
 
-        if gol1 > gol2:
-            self.result = 'Victoria'
-        if gol1 < gol2:
-            self.result = 'Derrota'
-        if gol1 == gol2:
-            self.result = 'Empate'
+def clasifications2():
+    global puntos2
+    puntos_ord = bubble_sort_UP(puntos2)
+    return puntos_ord
+
+def clasifications3():
+    global puntos2
+    puntos_ord = bubble_sort_DOWN(puntos2)
+    return puntos_ord       
 
 class Comand():
     def __init__(self) -> None:
@@ -861,17 +940,27 @@ def process_tables(tables,nombre):
     html_file.close()
     startfile('{}.html'.format(nombre))
 
-def process_tops(tables,nombre):
+def process_tops(tops,nombre):
 
     env = Environment(loader=FileSystemLoader('Templates/'),
                     autoescape=select_autoescape(['html']))
-    template = env.get_template('report_tables.html')
+    template = env.get_template('report_tops.html')
 
     html_file = open('{}.html'.format(nombre), 'w+', encoding='utf-8')
-    html_file.write(template.render(tables=tables))
+    html_file.write(template.render(tops=tops))
     html_file.close()
     startfile('{}.html'.format(nombre))
 
+def process_partidos(partidos,nombre):
+
+    env = Environment(loader=FileSystemLoader('Templates/'),
+                    autoescape=select_autoescape(['html']))
+    template = env.get_template('report_partidos.html')
+
+    html_file = open('{}.html'.format(nombre), 'w+', encoding='utf-8')
+    html_file.write(template.render(partidos=partidos))
+    html_file.close()
+    startfile('{}.html'.format(nombre))
 
 class display_gui():
     def __init__(self) -> None:
@@ -883,42 +972,42 @@ class display_gui():
         self.lexeme3 = ''
 
         self.root.title('La Liga Bot')
-        self.root.geometry('700x400')
+        self.root.geometry('850x400')
 
-        self.frame.config(width=700, height=400)
+        self.frame.config(width=850, height=400)
         self.frame.place(x=0, y=0)
 
         self.btn_RE = Button(self.frame, width = 17, text="Reporte de Errores", command = self.errors)
-        self.btn_RE.place(x=563, y=30)
+        self.btn_RE.place(x=713, y=30)
 
         self.btn_LLE = Button(self.frame, width = 17, text="Limpiar log de Errores", command=self.LOE_clear)
-        self.btn_LLE.place(x=563, y=60)
+        self.btn_LLE.place(x=713, y=60)
 
         self.btn_RT = Button(self.frame, width = 17, text="Reporte de Tokens", command = self.tokens)
-        self.btn_RT.place(x=563, y=90)
+        self.btn_RT.place(x=713, y=90)
 
         self.btn_LLT = Button(self.frame, width = 17, text="Limpiar log de Tokens", command= self.LOT_clear)
-        self.btn_LLT.place(x=563, y=120)
+        self.btn_LLT.place(x=713, y=120)
 
         self.btn_MU = Button(self.frame, width = 17, text="Manual de Usuario")
-        self.btn_MU.place(x=563, y=150)
+        self.btn_MU.place(x=713, y=150)
 
         self.btn_MT = Button(self.frame, width = 17, text="Manual Tecnico")
-        self.btn_MT.place(x=563, y=180)
+        self.btn_MT.place(x=713, y=180)
 
         self.btn_Send = Button(self.frame, width = 17, text="Enviar", command = lambda: self.analizer(self.text_area.get()))
-        self.btn_Send.place(x=563, y=348)
+        self.btn_Send.place(x=713, y=348)
 
-        self.chat_area = Text(self.frame,  height = 19, width = 65)
+        self.chat_area = Text(self.frame,  height = 19, width = 84)
         self.chat_area.place(x=30, y=30)
 
-        Bot = '{} \n'.format('HOLA')
+        Bot = '{} \n'.format('Bienvenido a la Liga Bot, Ingrese un Comando')
         self.chat_area.insert(END,Bot,("BOT",))
         self.chat_area.tag_configure("BOT",justify="left")
         self.chat_area.configure(state="disable")
 
         self.text_area = Entry(self.frame)
-        self.text_area.place(x=30, y=350, width=525 , height=25)
+        self.text_area.place(x=30, y=350, width=675 , height=25)
 
         self.root.resizable(0,0)
         self.root.mainloop()
@@ -975,6 +1064,11 @@ class display_gui():
             self.chat_area.insert(END,answer,("BOT",))
             self.chat_area.tag_configure("BOT",justify="left")
             self.chat_area.configure(state="disable")
+
+            if answer == 'ADIOS':
+                showinfo('Exit',
+                     'Saliendo de la aplicaicon')
+                sys.exit()
 
     def tokens(self):
         global tokens_list
@@ -1033,11 +1127,16 @@ def Load_CSV(ruta):
 def AI_BOT():
     global datas
     global tokens
-    global seasonses
     global tableses
     global journeyses
+    global seasonses
+    global seasonses2
+    global partidoses
 
     answer = ''
+    aux_n = 5
+
+    local = []
 
     cmds, type = scanner(tokens)
 
@@ -1046,14 +1145,14 @@ def AI_BOT():
             for i in cmds:
                 for j in datas:
                     if i.team1 == j.team1 and i.team2 == j.team2 and i.season == j.season:
-                        answer = 'El resultado de este partido fue: {}: {} - {}: {}'.format(j.team1,j.gol1,j.team2,j.gol2)
+                        answer = 'El resultado de este partido fue: {}: {} - {}: {} \n'.format(j.team1,j.gol1,j.team2,j.gol2)
 
         elif type == 'jornada':
             for i in cmds:
                 for j in datas:
                     if i.num1 == j.journey and i.season == j.season:
                         journeyses.append(journeys(j.journey,j.team1,j.gol1,j.team2,j.gol2))
-                        answer = 'Generando archivo de reaultados jornada: {} temporada {}'.format(i.num1,i.season)
+                        answer = 'Generando archivo de reaultados jornada: {} temporada {} \n'.format(i.num1,i.season)
                         if i.id == '':
                             i.id ='jornada'
             process_journeys(journeyses,i.id)
@@ -1064,7 +1163,7 @@ def AI_BOT():
                 for j in datas:
                     if i.team1 == j.team1 and i.season == j.season:
                         aux1 += int(j.gol1)
-                        answer = 'Los goles anotados por: {}, como LOCAL en la temporada {} fueron {}'.format(j.team1,j.season,aux1)
+                        answer = 'Los goles anotados por: {}, como LOCAL en la temporada {} fueron {} \n'.format(j.team1,j.season,aux1)
 
         elif type == 'golesV':
             aux1 = 0
@@ -1072,7 +1171,7 @@ def AI_BOT():
                 for j in datas:
                     if i.team1 == j.team2 and i.season == j.season:
                         aux1 += int(j.gol2)
-                        answer = 'Los goles anotados por: {}, como VISITANTE en la temporada {} fueron {}'.format(j.team1,j.season,aux1)
+                        answer = 'Los goles anotados por: {}, como VISITANTE en la temporada {} fueron {} \n'.format(j.team1,j.season,aux1)
 
         elif type == 'golesT':
             aux1 = 0
@@ -1084,9 +1183,8 @@ def AI_BOT():
                         aux1 += int(j.gol1)
                     if i.team1 == j.team2 and i.season == j.season:
                         aux2 += int(j.gol2)
-                    
                     total = aux1+aux2
-                    answer = 'Los goles anotados por: {}, en TOTAL en la temporada {} fueron {}'.format(j.team1,j.season,total)
+                    answer = 'Los goles anotados por: {}, en TOTAL en la temporada {} fueron {} \n'.format(j.team1,j.season,total)
 
         elif type == 'tabla':
             for i in cmds:
@@ -1094,38 +1192,107 @@ def AI_BOT():
                     if i.season == j.season:
                         tableses.append(tables(j.journey,j.team1,j.gol1,j.team2,j.gol2))
                         lista = clasifications()
-                        answer = 'Generando Archivo de clasificacion de temporada {}'.format(j.season)
+                        answer = 'Generando Archivo de clasificacion de temporada {} \n'.format(j.season)
                         if i.id == '':
                             i.id ='temporada'
             process_tables(lista,i.id)
 
         elif type == 'partidos':
+            local = []
             aux1 = 0
+            aux2 = 0
+
             for i in cmds:
                 for j in datas:
-                    if i.team1 == j.team2 and i.season == j.season:
-                        aux1 += int(j.gol2)
+                    if i.team1 == j.team1 or i.team1 == j.team2 and i.season == j.season:
+                        if i.num1 == 0:
+                            pass
+                        else:
+                            aux1 = int(i.num1)
+                        
+                        if i.num2 == 0:
+                            pass
+                        else:
+                            aux2 = int(i.num2)
 
-                        answer = 'Los goles anotados por: {} en total en la temporada {} fueron {}'.format(j.team1,j.season,aux1)
+                        if i.id == '':
+                            i.id ='partidos'    
+
+                        partidoses.append(partidos(j.journey,j.team1,j.gol1,j.team2,j.gol2))
+                        answer = 'Generando archivo de resultados de temporada: {} del {} \n'.format(j.season,j.team1)                        
+
+            try:
+                if aux1 != 0 and aux2 != 0:
+                    for k in range(aux1,aux2):
+                        local.append(partidoses[k])
+
+                elif aux1 == 0 and aux2 != 0:
+                    for l in range(0,aux2):
+                        local.append(partidoses[l])
+
+                elif aux1 != 0 and aux2 == 0:
+                    for m in range(aux1,len(partidoses)):
+                        local.append(partidoses[m])
+                
+                else:
+                    for n in range(len(partidoses)):
+                        local.append(partidoses[n])
+
+            except:
+                print()
+             
+            process_partidos(local,i.id)
+
 
         elif type == 'topS':
-            aux1 = 0
             for i in cmds:
                 for j in datas:
-                    if i.team1 == j.team2 and i.season == j.season:
-                        aux1 += int(j.gol2)
+                    if i.season == j.season:
+                        if i.num1 == 0:
+                            aux_n = 5
+                        else:
+                            aux_n = int(i.num1)
 
-                        answer = 'Los goles anotados por: {} en total en la temporada {} fueron {}'.format(j.team1,j.season,aux1)
-        
-        elif type == 'tosI':
-            aux1 = 0
+                        i.id ='topSuperior'
+    
+                        answer = 'El top superior de la temporada {} \n'.format(j.season)
+                        
+                        seasonses.append(tables2(j.journey,j.team1,j.gol1,j.team2,j.gol2,i.id))
+                        lista = clasifications2() 
+
+            try:
+                for k in range(0,aux_n):
+                    local.append(lista[k])
+            except:
+                print()
+                            
+            process_tops(local,i.id)
+                                 
+                        
+        elif type == 'topI':
             for i in cmds:
                 for j in datas:
-                    if i.team1 == j.team2 and i.season == j.season:
-                        aux1 += int(j.gol2)
+                    if i.season == j.season:
+                        if i.num1 == 0:
+                            aux_n = 5
+                        else:
+                            aux_n = int(i.num1)
 
-                        answer = 'Los goles anotados por: {} en total en la temporada {} fueron {}'.format(j.team1,j.season,aux1)
-        
+                        i.id ='topInferior'
+    
+                        answer = 'El top Inferior de la temporada {} \n'.format(j.season)
+                        
+                        seasonses2.append(tables2(j.journey,j.team1,j.gol1,j.team2,j.gol2,i.id))
+                        lista = clasifications3() 
+
+            try:
+                for k in range(0,aux_n):
+                    local.append(lista[k])
+            except:
+                print()
+                            
+            process_tops(local,i.id)
+
         elif type == 'adios':
             goodbye = 'ADIOS'
             answer = '{}'.format(goodbye)
