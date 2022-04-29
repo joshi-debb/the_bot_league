@@ -989,10 +989,10 @@ class display_gui():
         self.btn_LLT = Button(self.frame, width = 17, text="Limpiar log de Tokens", command= self.LOT_clear)
         self.btn_LLT.place(x=713, y=120)
 
-        self.btn_MU = Button(self.frame, width = 17, text="Manual de Usuario")
+        self.btn_MU = Button(self.frame, width = 17, text="Manual de Usuario", command=self.manual_usuario)
         self.btn_MU.place(x=713, y=150)
 
-        self.btn_MT = Button(self.frame, width = 17, text="Manual Tecnico")
+        self.btn_MT = Button(self.frame, width = 17, text="Manual Tecnico", command=self.manual_tecnico)
         self.btn_MT.place(x=713, y=180)
 
         self.btn_Send = Button(self.frame, width = 17, text="Enviar", command = lambda: self.analizer(self.text_area.get()))
@@ -1108,6 +1108,15 @@ class display_gui():
         errors_list = ()
         syntaxE_list = ()
         self.lexeme3 = ''
+
+    def manual_usuario(self):
+        print(' > Manual de Usuario')
+        webbrowser.open_new('Docs\\Usuario.pdf')
+    
+    def manual_tecnico(self):
+        print(' > Manual de Tecnico')
+        webbrowser.open_new('Docs\\Tecnico.pdf')
+
 
 def Load_CSV(ruta):
     with open(ruta,"r",encoding='utf-8') as File:
@@ -1302,6 +1311,8 @@ def AI_BOT():
 
     else:
         print(' > No hay parametros para comandos')
+
+
 
 if __name__ == '__main__':
     Load_CSV('Files\LaLigaBot-LFP.csv')
